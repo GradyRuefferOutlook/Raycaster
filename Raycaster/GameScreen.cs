@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -14,17 +15,22 @@ namespace Raycaster
     {
         Player player = new Player(300, 300);
         public Map map;
-        int mapX = 8, mapY = 8, mapS = 64;
+        public int mapX = 15, mapY = 10, mapS = 64;
+        int mapScale = 4;
+        int mapAdjustX;
+        int mapAdjustY;
         public int[] mapP =
         {
-            1,1,1,1,1,1,1,1,
-            1,0,1,0,0,0,0,1,
-            1,0,1,0,0,0,0,1,
-            1,0,1,0,0,0,0,1,
-            1,0,0,0,0,0,0,1,
-            1,0,0,0,0,1,0,1,
-            1,0,0,0,0,0,0,1,
-            1,1,1,1,1,1,1,1
+            1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+            1,0,1,0,0,0,0,0,0,0,0,1,0,0,1,
+            1,0,1,1,1,1,1,1,0,1,0,1,0,0,1,
+            1,0,1,0,0,0,0,0,0,1,1,1,0,0,1,
+            1,0,0,0,0,0,0,0,0,0,0,1,0,0,1,
+            1,0,0,0,0,1,0,0,0,0,0,0,0,0,1,
+            1,0,0,0,0,0,0,0,0,1,1,0,1,0,1,
+            1,0,0,0,0,1,0,0,0,1,0,1,1,0,1,
+            1,0,0,0,0,0,0,0,0,0,0,1,0,0,1,
+            1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
         };
 
         public GameScreen()
@@ -36,7 +42,10 @@ namespace Raycaster
         {
             this.Size = new Size(Form1.width, Form1.height);
 
-            map = new Map(mapP, mapX, mapY, mapS);
+            mapAdjustX = this.Width - (mapX * (mapS + mapScale) / mapScale);
+            //mapAdjustY = this.Height - (mapY * mapS / mapScale);
+            mapAdjustY = 10;
+            map = new Map(mapP, mapX, mapY, mapS / mapScale, mapAdjustX, mapAdjustY);
 
             GameOp.Enabled = true;
         }
@@ -49,6 +58,11 @@ namespace Raycaster
 
         private void GameScreen_Paint(object sender, PaintEventArgs e)
         {
+            for (int i = 0; i < player.rays.Count; i++)
+            {
+                e.Graphics.FillRectangle(new SolidBrush(Color.Red), new RectangleF((i * (player.screenWide / player.rays.Count)), (player.screenHeight / 2) - (player.rays[i].lineH / 2), (player.screenWide / player.rays.Count), player.rays[i].lineH));
+            }
+
             foreach (MapBlock point in map.mapPoints)
             {
                 if (point.type == "E")
@@ -62,13 +76,13 @@ namespace Raycaster
             }
 
             player.drawRays(this);
-            foreach (PointF ray in player.rays)
+            foreach (Ray ray in player.rays)
             {
-                e.Graphics.DrawLine(new Pen(Color.Green, 3), player.x, player.y, ray.X, ray.Y);
+                e.Graphics.DrawLine(new Pen(Color.Green, 3), (player.x / mapScale) + mapAdjustX, (player.y / mapScale) + mapAdjustY, (ray.rayPoint.X / mapScale) + mapAdjustX, (ray.rayPoint.Y / mapScale) + mapAdjustY);
             }
 
-            e.Graphics.FillRectangle(new SolidBrush(Color.Yellow), new RectangleF(player.x - 8, player.y - 8, 16, 16));
-            e.Graphics.DrawLine(new Pen(Color.Blue, 3), new PointF(player.x, player.y), new PointF(player.x + Convert.ToSingle(player.dx * 4), player.y + Convert.ToSingle(player.dy * 4)));
+            e.Graphics.FillRectangle(new SolidBrush(Color.Yellow), new RectangleF(((player.x - 8) / mapScale) + mapAdjustX, ((player.y - 8) / mapScale) + mapAdjustY, 16 / mapScale, 16 / mapScale));
+            e.Graphics.DrawLine(new Pen(Color.Blue, 3 / mapScale), new PointF((player.x / mapScale) + mapAdjustX, (player.y / mapScale) + mapAdjustY ), new PointF((player.x / mapScale) + Convert.ToSingle(player.dx * (5 / mapScale)) + mapAdjustX, (player.y / mapScale) + Convert.ToSingle(player.dy * (5 / mapScale)) + mapAdjustY));
         }
 
         private void GameScreen_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
@@ -92,6 +106,9 @@ namespace Raycaster
                     break;
                 case Keys.Right:
                     player.SetMove("TR", false);
+                    break;
+                case Keys.ShiftKey:
+                    player.SetMove("SHF", false);
                     break;
             }
         }
@@ -117,6 +134,9 @@ namespace Raycaster
                     break;
                 case Keys.Right:
                     player.SetMove("TR", true);
+                    break;
+                case Keys.ShiftKey:
+                    player.SetMove("SHF", true);
                     break;
             }
         }

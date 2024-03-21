@@ -10,14 +10,16 @@ namespace Raycaster
     public class Map
     {
         public MapBlock[] mapPoints;
-        public int mapX, mapY, mapS;
+        public int mapX, mapY, mapS, mapAdjustX, mapAdjustY;
         int spacing = 4;
 
-        public Map(int[] mapInd, int mapX, int mapY, int mapS)
+        public Map(int[] mapInd, int mapX, int mapY, int mapS, int mapAdjustX, int mapAdjustY)
         {
             this.mapX = mapX;
             this.mapY = mapY;
             this.mapS = mapS;
+            this.mapAdjustX = mapAdjustX;
+            this.mapAdjustY = mapAdjustY;
             DrawMap(mapInd);
         }
 
@@ -31,11 +33,11 @@ namespace Raycaster
                 {
                     if (mapInd[j + (i * mapX)] == 0)
                     {
-                        mapPoints[j + (i * mapX)] = new MapBlock((j * mapS) + (spacing / 2), (i * mapS) + (spacing / 2), mapS - spacing, mapS - spacing, "E");
+                        mapPoints[j + (i * mapX)] = new MapBlock(mapAdjustX + (j * mapS) + (spacing / 2), mapAdjustY + (i * mapS) + (spacing / 2), mapS - spacing, mapS - spacing, "E");
                     }
                     else
                     {
-                        mapPoints[j + (i * mapX)] = new MapBlock((j * mapS) + (spacing / 2), (i * mapS) + (spacing / 2), mapS - spacing, mapS - spacing, "F");
+                        mapPoints[j + (i * mapX)] = new MapBlock(mapAdjustX + (j * mapS) + (spacing / 2), mapAdjustY + (i * mapS) + (spacing / 2), mapS - spacing, mapS - spacing, "F");
                     }
                 }
             }

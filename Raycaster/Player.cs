@@ -11,12 +11,20 @@ namespace Raycaster
     {
         public float x, y;
         public double angle = 0.25 * Math.PI, dx = 0, dy = 5;
-        public bool LFT = false, RHT = false, FWD = false, BCK = false, TL = false, TR = false;
-        public List<PointF> rays = new List<PointF>();
+        public bool LFT = false, RHT = false, FWD = false, BCK = false, TL = false, TR = false, SHF = false;
+        public float runScaler = 2;
+        public List<Ray> rays = new List<Ray>();
+        public int screenWide = 0;
+        public int screenWideFactor = 8;
+        public int screenHeight = 320;
+        int windowScaler = 1;
+        int scaler = 15;
         public Player(float x, float y)
         {
             this.x = x;
             this.y = y;
+            dx = Math.Cos(angle) * 5;
+            dy = Math.Sin(angle) * 5;
         }
 
         public void SetMove(string m, bool r)
@@ -83,6 +91,16 @@ namespace Raycaster
                         TR = true;
                     }
                     break;
+                case "SHF":
+                    if (r)
+                    {
+                        SHF = false;
+                    }
+                    else
+                    {
+                        SHF = true;
+                    }
+                    break;
             }
         }
 
@@ -109,57 +127,122 @@ namespace Raycaster
                 dy = Math.Sin(angle) * 5;
             }
 
-            if (LFT && !RHT)
+            if (!LFT && RHT)
             {
-                if (FWD || BCK)
+                if (SHF)
                 {
-                    x -= Convert.ToSingle(dy / 1.75);
-                    y += Convert.ToSingle(dx / 1.75);
+                    if (FWD || BCK)
+                    {
+                        x -= Convert.ToSingle(dy / 1.75 * runScaler);
+                        y += Convert.ToSingle(dx / 1.75 * runScaler);
+                    }
+                    else
+                    {
+                        x -= Convert.ToSingle(dy * runScaler);
+                        y += Convert.ToSingle(dx) * runScaler;
+                    }
                 }
                 else
                 {
-                    x -= Convert.ToSingle(dy);
-                    y += Convert.ToSingle(dx);
+                    if (FWD || BCK)
+                    {
+                        x -= Convert.ToSingle(dy / 1.75);
+                        y += Convert.ToSingle(dx / 1.75);
+                    }
+                    else
+                    {
+                        x -= Convert.ToSingle(dy);
+                        y += Convert.ToSingle(dx);
+                    }
                 }
             }
-            else if (RHT && !LFT)
+            else if (!RHT && LFT)
             {
-                if (FWD || BCK)
+                if (SHF)
                 {
-                    x += Convert.ToSingle(dy / 1.75);
-                    y -= Convert.ToSingle(dx / 1.75);
+                    if (FWD || BCK)
+                    {
+                        x += Convert.ToSingle(dy / 1.75 * runScaler);
+                        y -= Convert.ToSingle(dx / 1.75 * runScaler);
+                    }
+                    else
+                    {
+                        x += Convert.ToSingle(dy * runScaler);
+                        y -= Convert.ToSingle(dx * runScaler);
+                    }
                 }
                 else
                 {
-                    x += Convert.ToSingle(dy);
-                    y -= Convert.ToSingle(dx);
+                    if (FWD || BCK)
+                    {
+                        x += Convert.ToSingle(dy / 1.75);
+                        y -= Convert.ToSingle(dx / 1.75);
+                    }
+                    else
+                    {
+                        x += Convert.ToSingle(dy);
+                        y -= Convert.ToSingle(dx);
+                    }
                 }
             }
 
-            if (FWD && !BCK)
+            if (!FWD && BCK)
             {
-                if (LFT || RHT)
+                if (SHF)
                 {
-                    x -= Convert.ToSingle(dx / 1.75);
-                    y -= Convert.ToSingle(dy / 1.75);
+                    if (LFT || RHT)
+                    {
+                        x -= Convert.ToSingle(dx / 1.75 * runScaler);
+                        y -= Convert.ToSingle(dy / 1.75 * runScaler);
+                    }
+                    else
+                    {
+                        x -= Convert.ToSingle(dx * runScaler);
+                        y -= Convert.ToSingle(dy * runScaler);
+                    }
                 }
                 else
                 {
-                    x -= Convert.ToSingle(dx);
-                    y -= Convert.ToSingle(dy);
+                    if (LFT || RHT)
+                    {
+                        x -= Convert.ToSingle(dx / 1.75);
+                        y -= Convert.ToSingle(dy / 1.75);
+                    }
+                    else
+                    {
+                        x -= Convert.ToSingle(dx);
+                        y -= Convert.ToSingle(dy);
+                    }
                 }
             }
-            else if (BCK && !FWD)
+            else if (!BCK && FWD)
             {
-                if (LFT || RHT)
+                if (SHF)
                 {
-                    x += Convert.ToSingle(dx / 1.75);
-                    y += Convert.ToSingle(dy / 1.75);
+                    if (LFT || RHT)
+                    {
+                        x += Convert.ToSingle(dx / 1.75 * runScaler);
+                        y += Convert.ToSingle(dy / 1.75 * runScaler);
+                    }
+                    else
+                    {
+                        x += Convert.ToSingle(dx * runScaler);
+                        y += Convert.ToSingle(dy * runScaler);
+                    }
+
                 }
                 else
                 {
-                    x += Convert.ToSingle(dx);
-                    y += Convert.ToSingle(dy);
+                    if (LFT || RHT)
+                    {
+                        x += Convert.ToSingle(dx / 1.75);
+                        y += Convert.ToSingle(dy / 1.75);
+                    }
+                    else
+                    {
+                        x += Convert.ToSingle(dx);
+                        y += Convert.ToSingle(dy);
+                    }
                 }
             }
         }
@@ -172,14 +255,35 @@ namespace Raycaster
         //To look further, change the range on depth of field
         public void drawRays(GameScreen gameScreen)
         {
-            int depthChecker = 8;
+            int depthChecker = 0;
+            if (gameScreen.mapX > gameScreen.mapY)
+            {
+                depthChecker = gameScreen.mapX + 5;
+            }
+            else
+            {
+                depthChecker = gameScreen.mapX + 5;
+            }
+
+            int moveback = 30;
 
             rays.Clear();
 
-            float rayAngle = Convert.ToSingle(angle), rayX, rayY, xOffset = 0, yOffset = 0;
+            float rayAngle = Convert.ToSingle(angle - ((Math.PI / 180) * moveback)), rayX, rayY, xOffset = 0, yOffset = 0;
+
+            if (rayAngle < 0)
+            {
+                rayAngle += Convert.ToSingle(2 * Math.PI);
+            }
+
+            else if (rayAngle > 2 * Math.PI)
+            {
+                rayAngle -= Convert.ToSingle(2 * Math.PI);
+            }
+
             int depthOfField, mapX, mapY, mapP;
 
-            for (int r = 0; r < 1; r++)
+            for (int r = 0; r < 60 * scaler; r++)
             {
                 //Check Horizontal
                 depthOfField = 0;
@@ -295,20 +399,57 @@ namespace Raycaster
                     }
                 }
 
+                float disT = 0;
+
                 if (disV < disM)
                 {
                     rayX = vertX;
                     rayY = vertY;
+                    disT = disV;
                 }
 
                 else
                 {
                     rayX = horiX;
                     rayY = horiY;
+                    disT = disM;
                 }
 
-                rays.Add(new PointF(rayX, rayY));
+                float ca = Convert.ToSingle(angle - rayAngle);
+
+                if (ca < 0)
+                {
+                    ca += Convert.ToSingle(2 * Math.PI);
+                }
+
+                else if (ca > 2 * Math.PI)
+                {
+                    ca -= Convert.ToSingle(2 * Math.PI);
+                }
+
+                disT = Convert.ToSingle(disT * Math.Cos(ca));
+
+                rays.Add(new Ray(new PointF(rayX, rayY), disT));
+
+                screenHeight = gameScreen.Height;
+
+                rays[r].DrawWall(gameScreen, screenHeight * windowScaler);
+
+                rayAngle += Convert.ToSingle(Math.PI / (180 * scaler));
+
+                if (rayAngle < 0)
+                {
+                    rayAngle += Convert.ToSingle(2 * Math.PI);
+                }
+
+                else if (rayAngle > 2 * Math.PI)
+                {
+                    rayAngle -= Convert.ToSingle(2 * Math.PI);
+                }
             }
+
+            screenWide = gameScreen.Width;
+            //screenWide = (screenWideFactor / scaler) * rays.Count * windowScaler;
         }
     }
 }
