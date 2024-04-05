@@ -11,11 +11,18 @@ namespace Raycaster
     {
         public RectangleF size;
         public string type;
-
+        public float angle = 0;
         public MapBlock(float x, float y, float width, float height, string type)
         {
             size = new RectangleF(x, y, width, height);
             this.type = type;
+        }
+
+        public MapBlock(float x, float y, float width, float height, string type, float angle)
+        {
+            size = new RectangleF(x, y, width, height);
+            this.type = type;
+            this.angle = angle;
         }
     }
 }
